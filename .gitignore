@@ -1,0 +1,52 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist/
+build/
+.env
+.env.local
+.env.production
+
+# Node
+node_modules/
+dist/
+
+# Storage (keep structure but ignore contents)
+backend/storage/uploads/*
+backend/storage/processed/*
+backend/storage/print_layouts/*
+!backend/storage/uploads/.gitkeep
+!backend/storage/processed/.gitkeep
+!backend/storage/print_layouts/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+coverage/
+
+# Temporary files
+*.tmp
+.cache/

@@ -1,21 +1,25 @@
 """Quick test script for the passport photo backend."""
 
-import requests
-import json
+import argparse
+import sys
 from pathlib import Path
+
+import requests
 
 # Base URL for the API
 BASE_URL = "http://localhost:8000"
+REPO_ROOT = Path(__file__).resolve().parent
 
-def test_upload_and_process(image_path: str):
+def test_upload_and_process(image_path: str, base_url: str = BASE_URL):
     """Test uploading and processing an image."""
+    base = base_url.rstrip("/")
     print(f"\n=== Testing with {image_path} ===\n")
 
     # 1. Upload image
     print("1. Uploading image...")
     with open(image_path, "rb") as f:
         files = {"file": (Path(image_path).name, f, "image/jpeg")}
-        response = requests.post(f"{BASE_URL}/api/upload", files=files)
+        response = requests.post(f"{base}/api/upload", files=files)
 
     if response.status_code != 200:
         print(f"Upload failed: {response.text}")
@@ -29,7 +33,7 @@ def test_upload_and_process(image_path: str):
     # 2. Process image
     print("\n2. Processing image...")
     process_response = requests.post(
-        f"{BASE_URL}/api/process",
+        f"{base}/api/process",
         json={"upload_id": upload_data['upload_id']}
     )
 
@@ -53,12 +57,45 @@ def test_upload_and_process(image_path: str):
 
     # 4. Download URLs
     print("\n4. Download URLs:")
-    print(f"  Single photo: {BASE_URL}{process_data['processed_url']}")
-    print(f"  Print layout: {BASE_URL}{process_data['print_layout_url']}")
+    print(f"  Single photo: {base}{process_data['processed_url']}")
+    print(f"  Print layout: {base}{process_data['print_layout_url']}")
 
     return process_data
 
+
+def _default_image_paths():
+    """Prefer explicit sample files; always include demo_headshot if present."""
+    candidates = [
+        REPO_ROOT / "sample_photos" / "demo_headshot.jpg",
+        REPO_ROOT / "sample_photos" / "jing_photo.jpg",
+        REPO_ROOT / "sample_photos" / "yue_photo.jpg",
+    ]
+    return [p for p in candidates if p.is_file()]
+
+
 if __name__ == "__main__":
-    # Test with both sample photos
-    test_upload_and_process("sample_photos/jing_photo.jpg")
-    test_upload_and_process("sample_photos/yue_photo.jpg")
+    parser = argparse.ArgumentParser(description="Upload and process images via the passport photo API.")
+    parser.add_argument(
+        "images",
+        nargs="*",
+        type=Path,
+        help="Image paths (JPEG/PNG). Defaults to sample_photos in the repo when omitted.",
+    )
+    parser.add_argument(
+        "--base-url",
+        default=BASE_URL,
+        help=f"API base URL (default: {BASE_URL})",
+    )
+    args = parser.parse_args()
+    base = args.base_url.rstrip("/")
+
+    paths = [p.resolve() for p in args.images] if args.images else _default_image_paths()
+    if not paths:
+        print("No images found. Add files under sample_photos/ or pass paths on the command line.", file=sys.stderr)
+        sys.exit(1)
+
+    for p in paths:
+        if not p.is_file():
+            print(f"Not a file: {p}", file=sys.stderr)
+            sys.exit(1)
+        test_upload_and_process(str(p), base_url=base)

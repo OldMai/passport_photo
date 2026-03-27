@@ -59,6 +59,9 @@ def test_upload_and_process(image_path: str):
     return process_data
 
 if __name__ == "__main__":
-    # Test with both sample photos
-    test_upload_and_process("sample_photos/jing_photo.jpg")
-    test_upload_and_process("sample_photos/yue_photo.jpg")
+    import sys
+    if len(sys.argv) > 1:
+        for img in sys.argv[1:]:
+            test_upload_and_process(img)
+    else:
+        test_upload_and_process("sample_photos/headshot.jpg")
